@@ -46,16 +46,24 @@ namespace ContactFormPBP
             // CONFIGURACION DE SQL
             // ========================================
 
-            string servidor = "IG-CLOUD";
-            string baseDatos = "VENTAS_BASEG";
-            string usuario = "sa";
-            string password = "+base$5317";
+            string servidor =
+                ConfigurationManager.AppSettings["SqlServer"];
+
+            string baseDatos =
+                ConfigurationManager.AppSettings["SqlDatabase"];
+
+            string usuario =
+                ConfigurationManager.AppSettings["SqlUser"];
+
+            string password =
+                ConfigurationManager.AppSettings["SqlPassword"];
 
             string connectionString =
                 "Server=" + servidor +
                 ";Database=" + baseDatos +
                 ";User Id=" + usuario +
                 ";Password=" + password + ";";
+
 
             // ========================================
             // CONFIGURACION DE MAILCHIMP
