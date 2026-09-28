@@ -10,8 +10,8 @@ namespace ContactFormPBP
         static void Main(string[] args)
         {
             string rutaLog = Path.Combine(
-            AppDomain.CurrentDomain.BaseDirectory,
-            "MailchimpContactFormPBP_Log.txt"
+                AppDomain.CurrentDomain.BaseDirectory,
+                "MailchimpContactFormPBP_Log.txt"
             );
 
             try
@@ -96,6 +96,10 @@ namespace ContactFormPBP
                     ConfigurationManager.AppSettings["NatsSubject"];
 
 
+                // ========================================
+                // VALIDACION SQL
+                // ========================================
+
                 MostrarPaso(
                     rutaLog,
                     "Validando configuracion SQL..."
@@ -142,6 +146,11 @@ namespace ContactFormPBP
                     "Password : configurado"
                 );
 
+
+                // ========================================
+                // VALIDACION MAILCHIMP
+                // ========================================
+
                 MostrarPaso(
                     rutaLog,
                     "Validando configuracion Mailchimp..."
@@ -161,6 +170,11 @@ namespace ContactFormPBP
                     "API Key  : configurada"
                 );
 
+
+                // ========================================
+                // VALIDACION NATS
+                // ========================================
+
                 MostrarPaso(
                     rutaLog,
                     "Validando configuracion NATS..."
@@ -175,7 +189,6 @@ namespace ContactFormPBP
                     "NatsSubject",
                     natsSubject
                 );
-
 
                 MostrarOK(
                     rutaLog,
@@ -194,6 +207,11 @@ namespace ContactFormPBP
                     "Password : configurado"
                 );
 
+
+                // ========================================
+                // CONNECTION STRING SQL
+                // ========================================
+
                 MostrarPaso(
                     rutaLog,
                     "Construyendo connection string SQL..."
@@ -210,6 +228,11 @@ namespace ContactFormPBP
                     "Connection string SQL creado."
                 );
 
+
+                // ========================================
+                // CONTACTO REPOSITORY
+                // ========================================
+
                 MostrarPaso(
                     rutaLog,
                     "Creando ContactoRepository..."
@@ -225,6 +248,11 @@ namespace ContactFormPBP
                     "ContactoRepository creado correctamente."
                 );
 
+
+                // ========================================
+                // MAILCHIMP SERVICE
+                // ========================================
+
                 MostrarPaso(
                     rutaLog,
                     "Creando MailchimpService..."
@@ -237,6 +265,11 @@ namespace ContactFormPBP
                     rutaLog,
                     "MailchimpService creado correctamente."
                 );
+
+
+                // ========================================
+                // NATS LISTENER
+                // ========================================
 
                 MostrarPaso(
                     rutaLog,
@@ -255,6 +288,11 @@ namespace ContactFormPBP
                     "NatsListener creado correctamente."
                 );
 
+
+                // ========================================
+                // INICIAR NATS
+                // ========================================
+
                 MostrarPaso(
                     rutaLog,
                     "Iniciando conexion NATS..."
@@ -267,7 +305,13 @@ namespace ContactFormPBP
                     "NatsListener.Start() ejecutado."
                 );
 
+
+                // ========================================
+                // SISTEMA INICIADO
+                // ========================================
+
                 Console.WriteLine("");
+
                 Console.WriteLine(
                     "========================================"
                 );
@@ -306,44 +350,35 @@ namespace ContactFormPBP
 
                 Console.WriteLine("");
 
-                Console.WriteLine(
-                    "Presione ENTER para detener el proceso."
-                );
-
-                Console.WriteLine("");
-
                 EscribirLog(
                     rutaLog,
                     "Sistema iniciado correctamente. Esperando mensajes NATS."
                 );
 
-                Console.ReadLine();
+                // ========================================
+                // MANTENER EL PROCESO VIVO
+                // ========================================
+                //
+                // No se utiliza Console.ReadLine()
+                // porque el proceso sera ejecutado
+                // posteriormente como servicio.
+                //
+                // El NatsListener queda ejecutandose
+                // mientras este proceso permanezca vivo.
+                //
 
-                MostrarPaso(
-                    rutaLog,
-                    "Deteniendo NatsListener..."
-                );
-
-                natsListener.Stop();
-
-                MostrarOK(
-                    rutaLog,
-                    "NatsListener detenido."
-                );
-
-                Console.WriteLine("");
-                Console.WriteLine(
-                    "Proceso detenido correctamente."
-                );
-
-                EscribirLog(
-                    rutaLog,
-                    "Proceso detenido correctamente."
+                System.Threading.Thread.Sleep(
+                    System.Threading.Timeout.Infinite
                 );
             }
             catch (Exception ex)
             {
+                // ========================================
+                // ERROR GENERAL
+                // ========================================
+
                 Console.WriteLine("");
+
                 Console.WriteLine(
                     "========================================"
                 );
@@ -388,12 +423,18 @@ namespace ContactFormPBP
 
                 Console.WriteLine("");
 
+
+                // ========================================
+                // INNER EXCEPTIONS
+                // ========================================
+
                 Exception inner =
                     ex.InnerException;
 
                 while (inner != null)
                 {
                     Console.WriteLine("");
+
                     Console.WriteLine(
                         "----------------------------------------"
                     );
@@ -436,17 +477,36 @@ namespace ContactFormPBP
                         inner.InnerException;
                 }
 
+
+                // ========================================
+                // LOG DEL ERROR
+                // ========================================
+
+                EscribirLog(
+                    rutaLog,
+                    "ERROR GENERAL: "
+                    + ex.GetType().FullName
+                    + " - "
+                    + ex.Message
+                );
+
+
+                // ========================================
+                // INFORMACION EN CONSOLA
+                // ========================================
+
                 Console.WriteLine("");
+
                 Console.WriteLine(
                     "========================================"
                 );
 
                 Console.WriteLine(
-                    "EL PROGRAMA PERMANECERA ABIERTO"
+                    "EL PROGRAMA SE DETENDRA POR ERROR"
                 );
 
                 Console.WriteLine(
-                    "Revise el error anterior y el archivo:"
+                    "Revise el archivo de log:"
                 );
 
                 Console.WriteLine(
@@ -457,14 +517,19 @@ namespace ContactFormPBP
                     "========================================"
                 );
 
-                Console.WriteLine("");
-                Console.WriteLine(
-                    "Presione ENTER para cerrar."
-                );
 
-                Console.ReadLine();
+                // ========================================
+                // CODIGO DE ERROR
+                // ========================================
+
+                Environment.ExitCode = 1;
             }
         }
+
+
+        // ============================================
+        // INICIALIZAR LOG
+        // ============================================
 
         static void InicializarLog(
             string rutaLog)
@@ -496,6 +561,11 @@ namespace ContactFormPBP
             }
         }
 
+
+        // ============================================
+        // MOSTRAR PASO
+        // ============================================
+
         static void MostrarPaso(
             string rutaLog,
             string texto)
@@ -509,6 +579,11 @@ namespace ContactFormPBP
                 "[PASO] " + texto
             );
         }
+
+
+        // ============================================
+        // MOSTRAR OK
+        // ============================================
 
         static void MostrarOK(
             string rutaLog,
@@ -524,6 +599,11 @@ namespace ContactFormPBP
             );
         }
 
+
+        // ============================================
+        // MOSTRAR ERROR
+        // ============================================
+
         static void MostrarError(
             string rutaLog,
             string texto)
@@ -538,6 +618,11 @@ namespace ContactFormPBP
             );
         }
 
+
+        // ============================================
+        // VALIDAR CONFIGURACION
+        // ============================================
+
         static void ValidarConfiguracion(
             string nombre,
             string valor)
@@ -550,6 +635,11 @@ namespace ContactFormPBP
                 );
             }
         }
+
+
+        // ============================================
+        // ESCRIBIR LOG
+        // ============================================
 
         public static void EscribirLog(
             string rutaLog,
@@ -565,7 +655,8 @@ namespace ContactFormPBP
                 {
                     log.WriteLine(
                         DateTime.Now.ToString(
-                            "dd/MM/yyyy HH:mm:ss")
+                            "dd/MM/yyyy HH:mm:ss"
+                        )
                         + " - "
                         + texto
                     );
@@ -578,6 +669,4 @@ namespace ContactFormPBP
             }
         }
     }
-
-
 }
