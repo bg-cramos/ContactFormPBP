@@ -41,6 +41,19 @@ namespace ContactFormPBP
                     ConfigurationManager.AppSettings["NatsSubject"];
 
 
+                EscribirLog(
+                    "[PASO] Iniciando conexion a NATS."
+                );
+
+                EscribirLog(
+                    "[INFO] Servidor NATS: " + natsUrl
+                );
+
+                EscribirLog(
+                    "[INFO] Subject NATS: " + subject
+                );
+
+
                 Console.WriteLine("");
                 Console.WriteLine("========================================");
                 Console.WriteLine("INTENTANDO CONECTAR A NATS");
@@ -76,7 +89,11 @@ namespace ContactFormPBP
 
 
                 EscribirLog(
-                    "NATS conectado. Subject: " + subject
+                    "[OK] NATS conectado correctamente."
+                );
+
+                EscribirLog(
+                    "[OK] Subject configurado: " + subject
                 );
 
 
@@ -86,6 +103,11 @@ namespace ContactFormPBP
                     {
                         ProcesarMensaje(args);
                     }
+                );
+
+
+                EscribirLog(
+                    "[OK] Suscripcion NATS creada correctamente."
                 );
             }
             catch (Exception ex)
@@ -112,7 +134,8 @@ namespace ContactFormPBP
 
 
                 EscribirLog(
-                    "ERROR CONECTANDO A NATS: " + ex
+                    "[ERROR] ERROR CONECTANDO A NATS: "
+                    + ex
                 );
             }
         }
@@ -127,6 +150,11 @@ namespace ContactFormPBP
         {
             try
             {
+                EscribirLog(
+                    "[NATS] Mensaje recibido."
+                );
+
+
                 string mensaje =
                     Encoding.UTF8.GetString(
                         args.Message.Data
@@ -144,13 +172,19 @@ namespace ContactFormPBP
 
 
                 EscribirLog(
-                    "Mensaje NATS recibido: " + mensaje
+                    "[NATS] Contenido recibido: "
+                    + mensaje
                 );
 
 
                 // ====================================================
                 // DESERIALIZAR JSON
                 // ====================================================
+
+                EscribirLog(
+                    "[NATS] Deserializando JSON..."
+                );
+
 
                 NatsContact contacto =
                     Newtonsoft.Json.JsonConvert
@@ -165,6 +199,11 @@ namespace ContactFormPBP
                         "El mensaje NATS no pudo deserializarse."
                     );
                 }
+
+
+                EscribirLog(
+                    "[OK] JSON deserializado correctamente."
+                );
 
 
                 // ====================================================
@@ -196,9 +235,25 @@ namespace ContactFormPBP
                 );
 
 
+                EscribirLog(
+                    "[NATS] Contacto recibido. "
+                    + "CNAME: " + contacto.CNAME
+                    + " - FNAME: " + contacto.FNAME
+                    + " - LNAME: " + contacto.LNAME
+                    + " - EMAIL: " + contacto.EMAIL
+                    + " - PHONE: " + contacto.PHONE
+                    + " - ACTI: " + contacto.ACTI
+                );
+
+
                 // ====================================================
                 // VALIDAR DATOS
                 // ====================================================
+
+                EscribirLog(
+                    "[PASO] Validando datos del contacto..."
+                );
+
 
                 if (string.IsNullOrWhiteSpace(contacto.CNAME))
                     throw new Exception(
@@ -231,6 +286,11 @@ namespace ContactFormPBP
                     );
 
 
+                EscribirLog(
+                    "[OK] Datos del contacto validados correctamente."
+                );
+
+
                 // ====================================================
                 // VARIABLES TRIAL
                 // ====================================================
@@ -254,6 +314,11 @@ namespace ContactFormPBP
 
                 Console.WriteLine(
                     "========================================"
+                );
+
+
+                EscribirLog(
+                    "[SQL] Iniciando creacion de contacto en SQL."
                 );
 
 
@@ -285,7 +350,10 @@ namespace ContactFormPBP
 
 
                     EscribirLog(
-                        "ERROR SQL. Email: "
+                        "[ERROR SQL] "
+                        + "NoInterno: "
+                        + noInterno
+                        + " - Email: "
                         + contacto.EMAIL
                         + " - "
                         + errorSql
@@ -308,9 +376,19 @@ namespace ContactFormPBP
                 );
 
 
+                EscribirLog(
+                    "[OK SQL] Contacto creado correctamente. "
+                    + "NoInterno: "
+                    + noInterno
+                    + " - Email: "
+                    + contacto.EMAIL
+                    + " - Origen: "
+                    + origen
+                );
+
 
                 // ====================================================
-                // MOSTRAR DATOS TRIAL
+                // DATOS TRIAL
                 // ====================================================
 
                 Console.WriteLine("");
@@ -328,19 +406,15 @@ namespace ContactFormPBP
                     + trialUserName
                 );
 
+                // NO MOSTRAR PASSWORD EN LOG NI CONSOLA
                 Console.WriteLine(
-                    "Trial Password  : "
-                    + trialPassword
+                    "Trial Password  : configurado"
                 );
 
 
                 EscribirLog(
-                    "Contacto creado en SQL. "
-                    + "NoInterno: "
-                    + noInterno
-                    + " - Email: "
-                    + contacto.EMAIL
-                    + " - TrialUserName: "
+                    "[SQL] Datos Trial generados. "
+                    + "TrialUserName: "
                     + trialUserName
                 );
 
@@ -363,20 +437,28 @@ namespace ContactFormPBP
                 );
 
 
-                bool mailchimpOk =
-                 _mailchimpService.EnviarContacto(
-                     contacto.CNAME,
-                     contacto.FNAME,
-                     contacto.LNAME,
-                     contacto.EMAIL,
-                     contacto.PHONE,
-                     contacto.ACTI,
-                     origen,
-                     trialUserName,
-                     trialPassword,
-                     out string errorMailchimp
-                 );
+                EscribirLog(
+                    "[MAILCHIMP] Iniciando envio de contacto. "
+                    + "NoInterno: "
+                    + noInterno
+                    + " - Email: "
+                    + contacto.EMAIL
+                );
 
+
+                bool mailchimpOk =
+                    _mailchimpService.EnviarContacto(
+                        contacto.CNAME,
+                        contacto.FNAME,
+                        contacto.LNAME,
+                        contacto.EMAIL,
+                        contacto.PHONE,
+                        contacto.ACTI,
+                        origen,
+                        trialUserName,
+                        trialPassword,
+                        out string errorMailchimp
+                    );
 
 
                 if (!mailchimpOk)
@@ -391,7 +473,7 @@ namespace ContactFormPBP
 
 
                     EscribirLog(
-                        "ERROR MAILCHIMP. "
+                        "[ERROR MAILCHIMP] "
                         + "NoInterno: "
                         + noInterno
                         + " - Email: "
@@ -402,6 +484,15 @@ namespace ContactFormPBP
 
                     return;
                 }
+
+
+                EscribirLog(
+                    "[OK MAILCHIMP] Contacto enviado correctamente. "
+                    + "NoInterno: "
+                    + noInterno
+                    + " - Email: "
+                    + contacto.EMAIL
+                );
 
 
                 // ====================================================
@@ -434,14 +525,14 @@ namespace ContactFormPBP
                 );
 
                 Console.WriteLine(
-                    "Trial Password  : " + trialPassword
+                    "Trial Password  : configurado"
                 );
 
                 Console.WriteLine("");
 
 
                 EscribirLog(
-                    "CONTACTO PROCESADO CORRECTAMENTE. "
+                    "[OK] CONTACTO PROCESADO COMPLETAMENTE. "
                     + "NoInterno: "
                     + noInterno
                     + " - Email: "
@@ -462,8 +553,7 @@ namespace ContactFormPBP
                 );
 
                 Console.WriteLine(
-                    "========================================"
-                );
+                    "========================================");
 
                 Console.WriteLine(
                     ex.ToString()
@@ -473,7 +563,7 @@ namespace ContactFormPBP
 
 
                 EscribirLog(
-                    "ERROR PROCESANDO MENSAJE NATS: "
+                    "[ERROR] ERROR PROCESANDO MENSAJE NATS: "
                     + ex
                 );
             }
@@ -486,15 +576,25 @@ namespace ContactFormPBP
 
         public void Stop()
         {
-            if (connection != null)
+            try
             {
-                connection.Close();
-                connection = null;
-            }
+                if (connection != null)
+                {
+                    connection.Close();
+                    connection = null;
+                }
 
-            EscribirLog(
-                "NATS desconectado."
-            );
+                EscribirLog(
+                    "[INFO] NATS desconectado."
+                );
+            }
+            catch (Exception ex)
+            {
+                EscribirLog(
+                    "[ERROR] Error desconectando NATS: "
+                    + ex
+                );
+            }
         }
 
 
@@ -528,6 +628,4 @@ namespace ContactFormPBP
             }
         }
     }
-
-
 }

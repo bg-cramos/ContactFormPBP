@@ -2,6 +2,8 @@
 using System.Configuration;
 using System.IO;
 using System.Text;
+using System.Diagnostics;
+
 
 namespace ContactFormPBP
 {
@@ -16,6 +18,8 @@ namespace ContactFormPBP
 
             try
             {
+                RegistrarEventSource();
+
                 InicializarLog(rutaLog);
 
                 MostrarPaso(
@@ -351,9 +355,15 @@ namespace ContactFormPBP
                 Console.WriteLine("");
 
                 EscribirLog(
-                    rutaLog,
-                    "Sistema iniciado correctamente. Esperando mensajes NATS."
+                     rutaLog,
+                     "Sistema iniciado correctamente. Esperando mensajes NATS."
+                 );
+
+                EscribirEventoWindows(
+                    "Sistema iniciado correctamente. Esperando mensajes NATS.",
+                    EventLogEntryType.Information
                 );
+
 
                 // ========================================
                 // MANTENER EL PROCESO VIVO
@@ -489,6 +499,15 @@ namespace ContactFormPBP
                     + " - "
                     + ex.Message
                 );
+
+                EscribirEventoWindows(
+                    "ERROR GENERAL: "
+                    + ex.GetType().FullName
+                    + " - "
+                    + ex.Message,
+                    EventLogEntryType.Error
+                );
+
 
 
                 // ========================================
@@ -668,5 +687,56 @@ namespace ContactFormPBP
                 // por un error de escritura del log.
             }
         }
+
+        // ============================================
+        // ESCRIBIR EVENTO EN WINDOWS
+        // ============================================
+
+        public static void EscribirEventoWindows(
+            string texto,
+            EventLogEntryType tipo)
+        {
+            try
+            {
+                EventLog.WriteEntry(
+                    "ContactFormPBP",
+                    texto,
+                    tipo
+                );
+            }
+            catch
+            {
+                // Un error del Event Viewer
+                // no debe detener el servicio.
+            }
+        }
+
+        // ============================================
+        // REGISTRAR EVENT SOURCE EN WINDOWS
+        // ============================================
+
+        public static void RegistrarEventSource()
+        {
+            try
+            {
+                string sourceName = "ContactFormPBP";
+                string logName = "Application";
+
+                if (!EventLog.SourceExists(sourceName))
+                {
+                    EventLog.CreateEventSource(
+                        sourceName,
+                        logName
+                    );
+                }
+            }
+            catch
+            {
+                // Si no hay permisos para crear el origen,
+                // no detener el programa.
+            }
+        }
+
+
     }
 }

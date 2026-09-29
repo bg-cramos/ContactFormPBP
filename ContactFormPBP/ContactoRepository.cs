@@ -705,7 +705,7 @@ namespace ContactFormPBP
 
             // Dominio fijo
             return usuario +
-                   "@baseglobal.com.ar";
+                   "@global.com.ar";
         }
 
 
